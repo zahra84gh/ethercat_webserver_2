@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        html, body { height: 100vh; margin: 0; }
+        #flex_container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            max-width: 80%;
+            padding: 50px;
+            margin: 20px auto;
+            justify-content: center
+        }
+        #flex_container .slave{
+            width:16%;
+            float: left;
+            text-align: center;
+            padding-bottom: 50px;
+            justify-content: center;
+            align-content: center;
+        }
+        .box {
+            width:75%;
+            margin:auto;
+            border: 2px solid black;
+            padding-bottom: 10px;
+            background-color: #b6dbb7;
+        }
+        #info_container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            max-width: 100%;
+            padding: 0px;
+            margin: 20px auto;
+            justify-content: center;
+            max-height: 50%;
+        }
+        #sdo_container {
+            float: left;
+            width: 35%;
+            padding: 50px;
+            border: 2px solid black;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;  
+        }
+
+        #sdo_container > textarea {
+            width: 100%;
+            height: 100%;
+            
+        }
+        #pdo_container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            width: 45%;
+            padding: 50px;
+            border: 2px solid black;
+            height: 50%;
+            justify-content:flex-start
+        }
+        #pdo_container > #form_container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            width: 45%;
+            height: 50%;
+            justify-content:flex-start;
+        }
+        #pdo_container > #text_container {
+            width: 30%;
+            justify-content: center;
+            flex: content;
+        }
+        span {
+            width: 80%;
+            white-space: pre-wrap;
+            display: block;
+            overflow-y:scroll;
+            
+        }
+        #pdo_form_inputs {
+            width: 40%;
+            padding: 12px;
+            justify-content: left
+        }
+        #pdo_form_outputs {
+            width: 40%;
+            padding: 12px;
+            justify-content: left
+        }
+        #pdo_form .option{
+            width:100%;
+            padding-bottom: 2px;
+            justify-content: center;
+            align-content: center;
+        }
+        #current_pdo {
+            width: 100%;
+            padding-left: 10%;
+        }
+        #extra_functions {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .cmmt_button_container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            width: 60%;
+            margin: auto;
+        }
+        .cmmt_extra_buttons {
+            background-color: #008CBA;
+            color: white;
+            text-align: center;
+            border: 1px solid rgb(110, 98, 180);
+            display: block; margin: auto;
+            padding: 15px 32px;
+            width: 150px;
+            margin-top: 7px;
+            
+        }
+        .cmmt_extra_buttons:hover {
+            background-color: #016181;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+        }
+        .cmmt_extra_buttons:active {
+        background-color: #016181;
+        box-shadow: 0 5px #666;
+        transform: translateY(4px);
+        }
+        .cmmt_status_control_container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            width: 50%;
+            margin: auto;
+            justify-content: center;
+        }
+        .dot {
+            height: 10px;
+            width: 10px;
+            background-color: #bbb;
+            border-radius: 50%;
+            display: inline;
+            vertical-align: middle;
+            transform: translateY(75%);
+        }
+        .cmmt_status_container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            width: 45%;
+            margin: auto;
+        }
+        .cmmt_status_word {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+        }
+        .cmmt_control_container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            width: 45%;
+            margin: auto;
+        }
+        .cmmt_control_word {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+        }
+        .break {
+            flex-basis: 100%;
+            height: 0;
+        }
+                /* The Modal (background) */
+        .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        /* Modal Content */
+        .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        }
+        /* The Close Button */
+        .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+        }
+    </style>
+ 
+</head>
+
+<body>
+    <h1>EtherCat webserver</h1>
+    <div>
+        <select type="input" id="adapter_select">Select adapter</select>
+        <button id="detect_btn" style="display: none;">Detect</button>
+    </div>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Some text in the Modal..</p>
+        </div>
+    </div>
+    <div id="flex_container">
+        <div class="slave" id="slave_template" style="display: none;">
+            <div class="box">
+                <div class="slave_number">number</div>
+                <div class="slave_name">name</div>
+                <button class="slave_sdo">SDO</button>
+                <button class="slave_pdo">PDO</button>
+            </div>
+        </div>
+    </div>
+    <div id="info_container">
+        <div id="sdo_container">
+            <span id="current_sdo" class="left" role="textbox">
+    
+            </span>
+        </div>
+        <div id="pdo_container">
+            <div id="form_container">
+                <form id="pdo_form_outputs" action="">
+
+                </form>
+                
+                <form id="pdo_form_inputs">
+
+                </form>
+            </div>
+            <div id="text_container">
+                <span id="current_pdo" class="left" role="textbox">
+    
+                </span>
+            </div>
+            <div id="extra_functions">
+
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+
+    get_adapters();
+
+    $("#detect_btn").click(function () {
+        get_slaves();
+    });
+
+    $("#adapter_select").change(function(){
+        $("#detect_btn").css("display", "block");
+    });
+
+    $(document).on('click', '.sdo_button', function(){
+        var id = this.id;
+        var id_sliced = id.slice(4);
+        var parent = $(this).parent().attr('id');
+        get_sdo(parent);
+    });
+
+    $(document).on('click', '.pdo_button', function(){
+        var id = this.id;
+        var id_sliced = id.slice(4);
+        var parent = $(this).parent().attr('id');
+        current_slave_idx = id_sliced;
+        current_slave_uid = parent;
+        get_pdo(parent);
+    });
+
+    $(document).on('click', '*[id*=output_form_submit]', function(){
+        var id = this.id;
+        var id_sliced = id.slice(19);
+        console.log(id_sliced);
+        send_pdo(id_sliced);
+    });
+
+    $(document).on('click', '*[id*=input_form_submit]', function(){
+        var id = this.id;
+        var id_sliced = id.slice(18);
+        console.log(id_sliced);
+        get_input_status(id_sliced);
+    });
+
+    $(document).on('change', '*[id*=output_]', function(){
+        let element = document.getElementById(`${this.id}`);
+        element.classList.toggle("changed");
+    });
+
+    $(document).on('click', '.cmmt_extra_buttons', function(){
+        var id = this.id;
+        cmmt_button_control(id);
+    });
+
+    $(document).on('click', '#cmmt_jaw_send', function(){
+        cmmt_jaw_angle($("#cmmt_angle").val());
+    });
+
+    $(document).on('click', '.cmmt_jaw_toggle', function(){
+        var id = this.id;
+        var value;
+        console.log(id);
+        if(id === "cmmt_jaw_start")
+            value = 1;
+        else
+            value = 0;
+            cmmt_jaw_toggle(value);
+    });
+
+    var ping_interval = setInterval(function() {
+        ping_slaves();
+    }, 5000);
+
+    var ping_interval = setInterval(function() {
+        if(current_slave_uid != 0)
+            get_input_status(current_slave_uid);
+    }, 1000);
+
+    var input_status_interval;
+    var slave_uids = [];
+    var slave_names = [];
+    var current_slave_uid = 0;
+    var current_slave_idx = 0;
+    var cmmt_switch_on = 0;
+    var cmmt_jaw_active = 0;
+
+    function post_request(data, return_type, timeout_ms){
+        return new Promise(function(resolve, reject) {
+            var timeout_var;
+            if(timeout_ms === undefined)
+                timeout_var = 2000;
+            else
+                timeout_var = timeout_ms;
+            $.ajax({
+            type: 'POST',
+            dataType: return_type,
+            url: '127.0.0.0',
+            data: data,
+            timeout: timeout_var,
+            beforeSend: function (xhr) {
+                xhr.overrideMimeType('application/xml');  // this line prevents XML parsing error with firefox
+            },
+            })
+            .done((response) => {
+                resolve(response);
+            })
+            .fail((err) => {
+                reject(err);
+                console.error(err);
+            })
+            .always(() => {
+            });
+        });
+    }
+
+    function ping_slaves(){
+        var data = { ping: true };
+        post_request(data, 'json').then(function(response) {
+            var new_slave_uids = [];
+            $.each(response, function(key, data) {
+                new_slave_uids.push(data);
+            })
+            if(new_slave_uids.length > slave_uids.length){
+                get_slaves();
+            }
+            slave_uids.filter(function(e) {
+                if(!new_slave_uids.includes(e)){
+                    $('#'+e).css('background-color', "#dea8a6");
+                }
+                else
+                    $('#'+e).css('background-color', "#b6dbb7");
+            });
+        }).catch(function(err) {
+            console.log(err);
+        });
+    }
+
+    function get_adapters(){
+        data = { adapter_request : true };
+        post_request(data, 'json').then(function(response) {
+            var $dropdown = $("#adapter_select");
+            $dropdown.append($("<option disabled selected/>").val(0).text("Please select adapter"));
+            $.each(response, function (key, data) {
+                $dropdown.append($("<option />").val(data).text(data));
+            }); 
+        }).catch(function(err) {
+            console.log(err);
+        });
+    }
+
+    function get_slaves(){
+        data = { slave_request : $("#adapter_select").val() };
+        post_request(data, 'json', 120000).then(function(response) {
+            $("#flex_container").empty();
+            slave_names =  [];
+            $.each(response, function (key, data) {
+                var contents = `<div class="slave" id="slave_template">
+                                    <div class="box" id="${data.uid}">
+                                        <div>Slave ${key}</div>
+                                        <div>${data.name}</div>
+                                        <button class="sdo_button" id="sdo_${key}">SDO</button>
+                                        <button class="pdo_button" id="pdo_${key}">PDO</button>
+                                    </div>
+                                </div>`
+                $("#flex_container").append(contents);
+                slave_names.push(data.name);
+                slave_uids.push(data.uid);
+            })
+            if(Object.keys(response).length === 0){
+                var contents = `<div class="slave" id="slave_template">
+                                    <div class="box">
+                                        <div>No slaves found</div>
+                                    </div>
+                                </div>`
+                $("#flex_container").append(contents);
+            }
+        }).catch(function(err) {
+            console.log(err);
+        });
+    }
+
+    function get_sdo(id){
+        var data = { sdo_request : id }
+        post_request(data, 'text').then(function(response) {
+            $("#current_sdo").text(response);
+        }).catch(function(err) {
+            console.log(err);
+        });
+    }
+
+    function get_pdo(id){
+        var data = { pdo_request : id }
+        post_request(data, 'text').then(function(response) {
+            var io = 0;
+            var arr_lines = response.split(/\r\n|\r|\n/);
+            $("#pdo_form_outputs").empty();
+            $("#pdo_form_inputs").empty();
+            $("#current_pdo").empty();
+            $("#current_pdo").text(response);
+            var div_id = "#pdo_form_outputs";
+            var disable = "";
+            var count = 0;
+            var iotype = "";
+            arr_lines.forEach(element => {
+                var words = element.split(' ');
+                words.clean("");
+                if(WordCount(element) == 2){
+                    if(words[1] === "inputs"){
+                        div_id = "#pdo_form_inputs";
+                        var contents = `<div>
+                                            <div>Inputs <button id="input_form_submit_${id}" type="button">Refresh</button> </div>
+                                            <br>
+                                        </div>`
+                        disable = "disabled"
+                        $(div_id).append(contents);
+                        count = 0;
+                        iotype = "input"
+                    }
+                    
+                    else if(words[1] === "outputs"){
+                        div_id = "#pdo_form_outputs";
+                        var contents = `<div>
+                                            <div>Outputs <button id="output_form_submit_${id}" type="button">Send</button> </div>
+                                            <br>
+                                        </div>`
+                        disable = "";
+                        $(div_id).append(contents);
+                        iotype = "output"
+                        count = 0;
+                    }
+                }
+                if(WordCount(element) >= 5){
+                    if(words[0] != "addr"){
+                        var keyword = words[words.length - 1];
+                        var type = words[3];
+                        var element_sliced =  words.splice(4,words.length);
+                        var parsed_text = element_sliced.join(' ');
+                        var contents = `<div class="option">
+                                            <label for="${parsed_text}_${id}_${count}">${parsed_text}</label>
+                                            <input type="number" name="${parsed_text}_${id}_${count}" id="${iotype}_${count}" ${disable} class="pdo_element ${type}">
+                                        </div>`
+                        $(div_id).append(contents);
+                        count += 1;
+                    }
+                }
+            });
+            var idx = slave_uids.indexOf(id);
+            if(slave_names[idx] === "CMMT-AS-MP-S1" || slave_names[idx] === "DX3 SERVO DRIVES"){
+                $("#extra_functions").empty();
+                var contents = `<div class="cmmt_button_container" id="${id}">
+                                    <button class="cmmt_extra_buttons" type="button" id="0">Switch ON</button>
+                                    <button class="cmmt_extra_buttons" type="button" id="1">Clear Error</button>
+                                    <button class="cmmt_extra_buttons" type="button" id="2">Homing</button>
+                                    <button class="cmmt_extra_buttons" type="button" id="3">Execute</button>
+                                    <br>
+                                    <button class="cmmt_extra_buttons" type="button" id="cmmt_jaw_mode">Jaw mode</button>
+                                    <button class="cmmt_extra_buttons" type="button" id="5">Opmode 2</button>
+                                    <button class="cmmt_extra_buttons" type="button" id="6">Opmode 3</button>
+                                    <button class="cmmt_extra_buttons" type="button" id="7">Opmode 4</button>
+                                </div>
+                                <div class="cmmt_status_control_container">
+                                    <div class="cmmt_status_container" style="margin-top: 10px;">Status word
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_1" style="padding-left: 5px;">Ready to switch on</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_2" style="padding-left: 5px; vertical-align: middle;">Switched on</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_3" style="padding-left: 5px;">Operation enabled</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_4" style="padding-left: 5px;">Fault</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_5" style="padding-left: 5px;">Voltage enabled</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_6" style="padding-left: 5px;">Quick stop</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_7" style="padding-left: 5px;">Switch on disabled</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_8" style="padding-left: 5px;">Warning</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_9" style="padding-left: 5px;">Drive is moving</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_10" style="padding-left: 5px;">Remote</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_11" style="padding-left: 5px;">Target reached</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_12" style="padding-left: 5px;">Internal limit active</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_13" style="padding-left: 5px;">Setpoint acknowledge</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_14" style="padding-left: 5px;">Following error</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_status_16" style="padding-left: 5px;">Drive is referenced</div></div>
+                                        <div class="break"></div>
+                                    </div>
+                                    <div class="cmmt_control_container" style="margin-top: 10px;">Control word
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_ctrl_1" style="padding-left: 5px;">Switch on</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_ctrl_2" style="padding-left: 5px; vertical-align: middle;">Enable voltage</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_ctrl_3" style="padding-left: 5px;">Quick stop</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_ctrl_4" style="padding-left: 5px;">Enable operation</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_ctrl_5" style="padding-left: 5px;">New setpoint</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_ctrl_6" style="padding-left: 5px;">Change set immediately</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_ctrl_7" style="padding-left: 5px;">Relative</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_ctrl_8" style="padding-left: 5px;">Fault reset</div></div>
+                                        <div class="break"></div>
+                                        <div class="cmmt_status_word"><span class="dot"></span><div id="cmmt_ctrl_9" style="padding-left: 5px;">Operation mode</div></div>
+                                        <div class="break"></div>
+                                    </div>
+                                </div>`
+                $("#extra_functions").append(contents);
+            }
+            get_input_status(id);
+            get_output_status(id);
+        }).catch(function(err) {
+            console.log(err);
+        });
+    }
+
+    function set_status_board(id, name, status){
+        var status_words = status.split(' ');
+        count = 0;
+        $(".cmmt_status_container .dot").each(function() {
+            var bit_id = $(this).next().attr('id').slice(12);
+            var bit = Math.pow(2, Number(bit_id - 1));
+            if(Number(status_words[0]) & bit){
+                $(this).css("background-color", "green");
+                $(this).next().css("font-weight", "bold");
+            }
+            else{
+                $(this).css("background-color", "#bbb");
+                $(this).next().css("font-weight", "normal");
+            }
+            count++;
+        })
+    }
+
+    function set_control_board(id, name, status){
+        var status_words = status.split(' ');
+        count = 0;
+        $(".cmmt_control_container .dot").each(function() {
+            var bit = Math.pow(2, count);
+            if(Number(status_words[0]) & bit){
+                $(this).css("background-color", "green");
+                $(this).next().css("font-weight", "bold");
+            }
+            else{
+                $(this).css("background-color", "#bbb");
+                $(this).next().css("font-weight", "normal");
+            }
+            count++;
+        })
+    }
+
+    function send_pdo(id){
+        let data = { pdo_post : []};
+        $(".pdo_element").each(function() {
+            if($(this).hasClass('changed')){
+                var classList = document.getElementById(this.id).className.split(/\s+/);
+                var reduced_id = this.id.split("_").pop();
+                data.pdo_post.push({
+                    "id_type_value" : id + " " + reduced_id + " " + classList[1] + " " +  $(this).val()
+                });
+                if(reduced_id == "0"){
+                    set_control_board(id, "cmmt", $(this).val());
+                }
+                console.log(data);
+                let element = document.getElementById(`${this.id}`);
+                element.classList.toggle("changed");
+                get_input_status(id);
+            }
+        });
+        post_request(data, 'text').then(function(response) {
+        }).catch(function(err) {
+            console.log(err);
+        });
+    }
+
+    function get_input_status(id){
+        data = { get_input_status : id };
+        post_request(data, 'text').then(function(response) {
+            var nums = response.split(' ');
+            nums.forEach(function(value, i) {
+                $(`#input_${i}`).val(value);
+            })
+            set_status_board(id, "cmmt", response);
+        }).catch(function(err) {
+            console.log(err);
+        });
+    }
+
+    function get_output_status(id){
+        data = { get_output_status : id };
+        post_request(data, 'text').then(function(response) {
+            var nums = response.split(' ');
+            
+            nums.forEach(function(value, i) {
+                $(`#output_${i}`).val(value);
+            })
+            set_control_board(id, "cmmt", response);
+        }).catch(function(err) {
+            console.log(err);
+        });
+    }
+
+    function cmmt_button_control(button_id){
+        data = { jaw : true };
+        console.log("HERE");
+        //post_request(data, 'json', 50000);
+        switch (button_id) {
+            case 0:
+                if(cmmt_switch_on == 0){
+                    data = { pdo_post : [ ]}
+                }
+                break;
+            case 1:
+                
+                break;
+            case 2:
+                
+                break;
+            case 3:
+                
+                break;
+            case "cmmt_jaw_mode":
+                console.log("Jaw mode active :" + cmmt_jaw_active);
+                if(cmmt_jaw_active === 0){
+                    var contents = `<div class="cmmt_jaw">
+                                        <label for="cmmt_jaw_1">Angle</label>
+                                        <input type="number" name="cmmt_jaw_1" id="cmmt_angle">
+                                        <button id="cmmt_jaw_send">Send</button>
+                                        <button class="cmmt_jaw_toggle" id="cmmt_jaw_start">Start</button>
+                                        <button class="cmmt_jaw_toggle" id="cmmt_jaw_stop">Stop</button>
+                                    </div>`
+                    $(".cmmt_button_container").append(contents);
+                    $("#cmmt_jaw_mode").css("background-color", "green");
+                    cmmt_jaw_active = 1;                                 
+                }
+                else{
+                    $(".cmmt_jaw").remove();
+                    $("#cmmt_jaw_mode").css("background-color", "#008CBA");
+                    cmmt_jaw_active = 0;
+
+                }
+                break;
+            case 5:
+                
+                break;
+            case 6:
+                
+                break;
+            default:
+                break;
+        }
+    }
+
+    function cmmt_jaw_toggle(value) {
+        console.log(value);
+        data = { jaw_toggle : value }
+        post_request(data, 'json', 50000);
+    }
+
+    function cmmt_jaw_angle(angle) {
+        data = { jaw_set_angle : angle }
+        console.log(data);
+        post_request(data, 'json', 50000);
+    }
+
+    function WordCount(str) {
+     return str.split(' ')
+            .filter(function(n) { return n != '' })
+            .length;
+    }
+
+    Array.prototype.clean = function(deleteValue) {
+        for (var i = 0; i < this.length; i++) {
+            if (this[i] == deleteValue) {         
+            this.splice(i, 1);
+            i--;
+            }
+        }
+        return this;
+    };
+
+    function cia402_clear_error() {
+        data = { }
+    }
+</script>
+
+</html>
+
+Change enter-docker.sh script so docker knows where to look for the sources
+nano enter_docker.sh
+add: ex: -v $HOME/[YOUR LOCATION TO PACKING MACHINE SCR]/packing-machine-src/:/workdir/packing-machine-src/
+
+Add the packages inside docker
+sh enter_docker.sh
+. oe-init-build-env
+devtool modify -n newtec-packing-machine-controller /workdir/packing-machine-src
+
+Reset the devtool
+devtool reset -a -n 
+
+
+Devshell
+bitbake multiconfig:qt5222:newtec-packing-machine-controller -c devshell
+(oe-workdir/newtec-packing-machine-controller-1.0 [TAB])
+(make)
+
+You can now run 'bitbake <target>'
+
+Common targets are:
+

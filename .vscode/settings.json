@@ -1,0 +1,20 @@
+{
+    "files.associations": {
+        "microhttpd.h": "c",
+        "type_traits": "cpp",
+        "cjson.h": "c",
+        "ethercat.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "ethercatdc.h": "c",
+        "nicdrv.h": "c",
+        "optional": "c",
+        "system_error": "c",
+        "functional": "c",
+        "tuple": "c",
+        "utility": "c",
+        "limits": "c",
+        "cstdint": "c"
+    }
+}

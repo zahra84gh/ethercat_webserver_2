@@ -1,0 +1,242 @@
+0x1000      "Device type"                                 [VAR]
+    0x00      "Device type"                                 [UNSIGNED32       R_R_R_]      0x00001389 / 5001
+0x1001      "Error register"                              [VAR]
+    0x00      "Error register"                              [UNSIGNED8        R_R_R_]      0x00 / 0
+0x1008      "Device name"                                 [VAR]
+    0x00      "Device name"                                 [VISIBLE_STR(48)  R_R_R_]      "EIO116"
+0x1009      "Hardware version"                            [VAR]
+    0x00      "Hardware version"                            [VISIBLE_STR(24)  R_R_R_]      "N/A"
+0x100a      "Software version"                            [VAR]
+    0x00      "Software version"                            [VISIBLE_STR(24)  R_R_R_]      "N/A"
+0x1018      "Identity"                                    [RECORD  maxsub(0x04 / 4)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x04 / 4
+    0x01      "Vendor ID"                                   [UNSIGNED32       R_R_R_]      0x00bada55 / 12245589
+    0x02      "Product code"                                [UNSIGNED32       R_R_R_]      0x00008003 / 32771
+    0x03      "Revision"                                    [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x04      "Serial number"                               [UNSIGNED32       R_R_R_]      0x00000000 / 0
+0x10f1      "Error Settings"                              [RECORD  maxsub(0x02 / 2)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x02 / 2
+    0x01      "Local Error Reaction"                        [UNSIGNED32       RWRWRW]      0x00000001 / 1
+    0x02      "Sync Error Counter Limit"                    [UNSIGNED16       RWRWRW]      0x0004 / 4
+0x10f8      "Timestamp Object"                            [VAR]
+    0x00      "Timestamp Object"                            [UNSIGNED64       RWRWRW]      0x000007fc8df142d1 / 8781294551761
+0x1600      "Output mapping 0"                            [RECORD  maxsub(0x36 / 54)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x36 / 54
+    0x01      "SubIndex 001"                                [UNSIGNED32       R_R_R_]      0x70000110 / 1879048464
+    0x02      "SubIndex 002"                                [UNSIGNED32       R_R_R_]      0x70010108 / 1879113992
+    0x03      "SubIndex 003"                                [UNSIGNED32       R_R_R_]      0x70010208 / 1879114248
+    0x04      "SubIndex 004"                                [UNSIGNED32       R_R_R_]      0x70010308 / 1879114504
+    0x05      "SubIndex 005"                                [UNSIGNED32       R_R_R_]      0x70010408 / 1879114760
+    0x06      "SubIndex 006"                                [UNSIGNED32       R_R_R_]      0x70010508 / 1879115016
+    0x07      "SubIndex 007"                                [UNSIGNED32       R_R_R_]      0x00000008 / 8
+    0x08      "SubIndex 008"                                [UNSIGNED32       R_R_R_]      0x70010710 / 1879115536
+    0x09      "SubIndex 009"                                [UNSIGNED32       R_R_R_]      0x70010810 / 1879115792
+    0x0a      "SubIndex 010"                                [UNSIGNED32       R_R_R_]      0x70010910 / 1879116048
+    0x0b      "SubIndex 011"                                [UNSIGNED32       R_R_R_]      0x70010a10 / 1879116304
+    0x0c      "SubIndex 012"                                [UNSIGNED32       R_R_R_]      0x70010b10 / 1879116560
+    0x0d      "SubIndex 013"                                [UNSIGNED32       R_R_R_]      0x70010c10 / 1879116816
+    0x0e      "SubIndex 014"                                [UNSIGNED32       R_R_R_]      0x70010d10 / 1879117072
+    0x0f      "SubIndex 015"                                [UNSIGNED32       R_R_R_]      0x70010e10 / 1879117328
+    0x10      "SubIndex 016"                                [UNSIGNED32       R_R_R_]      0x70010f10 / 1879117584
+    0x11      "SubIndex 017"                                [UNSIGNED32       R_R_R_]      0x70011020 / 1879117856
+    0x12      "SubIndex 018"                                [UNSIGNED32       R_R_R_]      0x70011108 / 1879118088
+    0x13      "SubIndex 019"                                [UNSIGNED32       R_R_R_]      0x00000008 / 8
+    0x14      "SubIndex 020"                                [UNSIGNED32       R_R_R_]      0x70020108 / 1879179528
+    0x15      "SubIndex 021"                                [UNSIGNED32       R_R_R_]      0x70020208 / 1879179784
+    0x16      "SubIndex 022"                                [UNSIGNED32       R_R_R_]      0x70020308 / 1879180040
+    0x17      "SubIndex 023"                                [UNSIGNED32       R_R_R_]      0x70020408 / 1879180296
+    0x18      "SubIndex 024"                                [UNSIGNED32       R_R_R_]      0x70020508 / 1879180552
+    0x19      "SubIndex 025"                                [UNSIGNED32       R_R_R_]      0x70020608 / 1879180808
+    0x1a      "SubIndex 026"                                [UNSIGNED32       R_R_R_]      0x70020720 / 1879181088
+    0x1b      "SubIndex 027"                                [UNSIGNED32       R_R_R_]      0x70020820 / 1879181344
+    0x1c      "SubIndex 028"                                [UNSIGNED32       R_R_R_]      0x70020920 / 1879181600
+    0x1d      "SubIndex 029"                                [UNSIGNED32       R_R_R_]      0x70020a20 / 1879181856
+    0x1e      "SubIndex 030"                                [UNSIGNED32       R_R_R_]      0x70020b08 / 1879182088
+    0x1f      "SubIndex 031"                                [UNSIGNED32       R_R_R_]      0x00000008 / 8
+    0x20      "SubIndex 032"                                [UNSIGNED32       R_R_R_]      0x70030110 / 1879245072
+    0x21      "SubIndex 033"                                [UNSIGNED32       R_R_R_]      0x70030220 / 1879245344
+    0x22      "SubIndex 034"                                [UNSIGNED32       R_R_R_]      0x70030320 / 1879245600
+    0x23      "SubIndex 035"                                [UNSIGNED32       R_R_R_]      0x70030420 / 1879245856
+    0x24      "SubIndex 036"                                [UNSIGNED32       R_R_R_]      0x70030520 / 1879246112
+    0x25      "SubIndex 037"                                [UNSIGNED32       R_R_R_]      0x70030620 / 1879246368
+    0x26      "SubIndex 038"                                [UNSIGNED32       R_R_R_]      0x70030720 / 1879246624
+    0x27      "SubIndex 039"                                [UNSIGNED32       R_R_R_]      0x70030820 / 1879246880
+    0x28      "SubIndex 040"                                [UNSIGNED32       R_R_R_]      0x70030920 / 1879247136
+    0x29      "SubIndex 041"                                [UNSIGNED32       R_R_R_]      0x70030a20 / 1879247392
+    0x2a      "SubIndex 042"                                [UNSIGNED32       R_R_R_]      0x70030b20 / 1879247648
+    0x2b      "SubIndex 043"                                [UNSIGNED32       R_R_R_]      0x70030c20 / 1879247904
+    0x2c      "SubIndex 044"                                [UNSIGNED32       R_R_R_]      0x70030d20 / 1879248160
+    0x2d      "SubIndex 045"                                [UNSIGNED32       R_R_R_]      0x70030e20 / 1879248416
+    0x2e      "SubIndex 046"                                [UNSIGNED32       R_R_R_]      0x70030f20 / 1879248672
+    0x2f      "SubIndex 047"                                [UNSIGNED32       R_R_R_]      0x70031020 / 1879248928
+    0x30      "SubIndex 048"                                [UNSIGNED32       R_R_R_]      0x70031120 / 1879249184
+    0x31      "SubIndex 049"                                [UNSIGNED32       R_R_R_]      0x70031220 / 1879249440
+    0x32      "SubIndex 050"                                [UNSIGNED32       R_R_R_]      0x70040110 / 1879310608
+    0x33      "SubIndex 051"                                [UNSIGNED32       R_R_R_]      0x70050108 / 1879376136
+    0x34      "SubIndex 052"                                [UNSIGNED32       R_R_R_]      0x70050208 / 1879376392
+    0x35      "SubIndex 053"                                [UNSIGNED32       R_R_R_]      0x70060108 / 1879441672
+    0x36      "SubIndex 054"                                [UNSIGNED32       R_R_R_]      0x00000008 / 8
+0x1a00      "Input mapping 0"                             [RECORD  maxsub(0x17 / 23)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x17 / 23
+    0x01      "SubIndex 001"                                [UNSIGNED32       R_R_R_]      0x60000110 / 1610613008
+    0x02      "SubIndex 002"                                [UNSIGNED32       R_R_R_]      0x60000210 / 1610613264
+    0x03      "SubIndex 003"                                [UNSIGNED32       R_R_R_]      0x60000310 / 1610613520
+    0x04      "SubIndex 004"                                [UNSIGNED32       R_R_R_]      0x60010110 / 1610678544
+    0x05      "SubIndex 005"                                [UNSIGNED32       R_R_R_]      0x60010208 / 1610678792
+    0x06      "SubIndex 006"                                [UNSIGNED32       R_R_R_]      0x00000008 / 8
+    0x07      "SubIndex 007"                                [UNSIGNED32       R_R_R_]      0x60020110 / 1610744080
+    0x08      "SubIndex 008"                                [UNSIGNED32       R_R_R_]      0x60020220 / 1610744352
+    0x09      "SubIndex 009"                                [UNSIGNED32       R_R_R_]      0x60020320 / 1610744608
+    0x0a      "SubIndex 010"                                [UNSIGNED32       R_R_R_]      0x60020420 / 1610744864
+    0x0b      "SubIndex 011"                                [UNSIGNED32       R_R_R_]      0x60020520 / 1610745120
+    0x0c      "SubIndex 012"                                [UNSIGNED32       R_R_R_]      0x60020620 / 1610745376
+    0x0d      "SubIndex 013"                                [UNSIGNED32       R_R_R_]      0x60020720 / 1610745632
+    0x0e      "SubIndex 014"                                [UNSIGNED32       R_R_R_]      0x60020820 / 1610745888
+    0x0f      "SubIndex 015"                                [UNSIGNED32       R_R_R_]      0x60020920 / 1610746144
+    0x10      "SubIndex 016"                                [UNSIGNED32       R_R_R_]      0x60020a20 / 1610746400
+    0x11      "SubIndex 017"                                [UNSIGNED32       R_R_R_]      0x60020b20 / 1610746656
+    0x12      "SubIndex 018"                                [UNSIGNED32       R_R_R_]      0x60020c20 / 1610746912
+    0x13      "SubIndex 019"                                [UNSIGNED32       R_R_R_]      0x60020d20 / 1610747168
+    0x14      "SubIndex 020"                                [UNSIGNED32       R_R_R_]      0x60020e20 / 1610747424
+    0x15      "SubIndex 021"                                [UNSIGNED32       R_R_R_]      0x60020f20 / 1610747680
+    0x16      "SubIndex 022"                                [UNSIGNED32       R_R_R_]      0x60021020 / 1610747936
+    0x17      "SubIndex 023"                                [UNSIGNED32       R_R_R_]      0x60021120 / 1610748192
+0x1c00      "Sync manager type"                           [ARRAY  maxsub(0x04 / 4)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x04 / 4
+    0x01      "SubIndex 001"                                [UNSIGNED8        R_R_R_]      0x01 / 1
+    0x02      "SubIndex 002"                                [UNSIGNED8        R_R_R_]      0x02 / 2
+    0x03      "SubIndex 003"                                [UNSIGNED8        R_R_R_]      0x03 / 3
+    0x04      "SubIndex 004"                                [UNSIGNED8        R_R_R_]      0x04 / 4
+0x1c12      "SyncManager 2 assignment"                    [ARRAY  maxsub(0x01 / 1)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x01 / 1
+    0x01      "SubIndex 001"                                [UNSIGNED16       R_R_R_]      0x1600 / 5632
+0x1c13      "SyncManager 3 assignment"                    [ARRAY  maxsub(0x01 / 1)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x01 / 1
+    0x01      "SubIndex 001"                                [UNSIGNED16       R_R_R_]      0x1a00 / 6656
+0x1c32      "SM output parameter"                         [RECORD  maxsub(0x20 / 32)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x20 / 32
+    0x01      "Synchronization Type"                        [UNSIGNED16       RWR_R_]      0x0001 / 1
+    0x02      "Cycle Time"                                  [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x04      "Synchronization Types supported"             [UNSIGNED16       R_R_R_]      0x401f / 16415
+    0x05      "Minimum Cycle Time"                          [UNSIGNED32       R_R_R_]      0x0001e848 / 125000
+    0x06      "Calc and Copy Time"                          [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x08      "Get Cycle Time"                              [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x09      "Delay Time"                                  [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x0a      "Sync0 Cycle Time"                            [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x0b      "SM-Event Missed"                             [UNSIGNED16       R_R_R_]      0x0000 / 0
+    0x0c      "Cycle Time Too Small"                        [UNSIGNED16       R_R_R_]      0x0000 / 0
+    0x20      "Sync Error"                                  [BOOLEAN          R_R_R_]      FALSE
+0x1c33      "SM input parameter"                          [RECORD  maxsub(0x20 / 32)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x20 / 32
+    0x01      "Synchronization Type"                        [UNSIGNED16       RWR_R_]      0x0022 / 34
+    0x02      "Cycle Time"                                  [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x04      "Synchronization Types supported"             [UNSIGNED16       R_R_R_]      0x401f / 16415
+    0x05      "Minimum Cycle Time"                          [UNSIGNED32       R_R_R_]      0x0001e848 / 125000
+    0x06      "Calc and Copy Time"                          [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x08      "Get Cycle Time"                              [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x09      "Delay Time"                                  [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x0a      "Sync0 Cycle Time"                            [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x0b      "SM-Event Missed"                             [UNSIGNED16       R_R_R_]      0x0000 / 0
+    0x0c      "Cycle Time Too Small"                        [UNSIGNED16       R_R_R_]      0x0000 / 0
+    0x20      "Sync Error"                                  [BOOLEAN          R_R_R_]      FALSE
+0x2000      "GENERIC_SDO_DATA"                            [RECORD  maxsub(0x07 / 7)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x07 / 7
+    0x01      "UID_0"                                       [UNSIGNED32       R_R_R_]      0x10888101 / 277381377
+    0x02      "UID_1"                                       [UNSIGNED32       R_R_R_]      0x28816015 / 679567381
+    0x03      "UID_2"                                       [UNSIGNED32       R_R_R_]      0x20000401 / 536871937
+    0x04      "UID_3"                                       [UNSIGNED32       R_R_R_]      0x0000000b / 11
+    0x05      "HW_VERSION"                                  [UNSIGNED16       R_R_R_]      0x00c8 / 200
+    0x06      "FW_VERSION"                                  [UNSIGNED16       R_R_R_]      0x0200 / 512
+    0x07      "FW_CRC"                                      [UNSIGNED32       R_R_R_]      0x99968073 / 2576777331
+0x6000      "GENERIC_PDO_DATA"                            [RECORD  maxsub(0x03 / 3)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x03 / 3
+    0x01      "STATUS"                                      [UNSIGNED16       R_R_R_]      0x0001 / 1
+    0x02      "ERROR"                                       [UNSIGNED16       R_R_R_]      0x0000 / 0
+    0x03      "TEMPERATURE"                                 [UNSIGNED16       R_R_R_]      0x11e9 / 4585
+0x6001      "IO_DATA"                                     [RECORD  maxsub(0x03 / 3)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x02 / 2
+    0x01      "OUTPUT_STATE"                                [UNSIGNED16       R_R_R_]      0x0000 / 0
+    0x02      "INPUT_STATE"                                 [UNSIGNED8        R_R_R_]      0x00 / 0
+0x6002      "HW_STATUS"                                   [RECORD  maxsub(0x11 / 17)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x11 / 17
+    0x01      "TRIGGERED"                                   [UNSIGNED16       R_R_R_]      0x0000 / 0
+    0x02      "COUNT_0"                                     [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x03      "COUNT_1"                                     [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x04      "COUNT_2"                                     [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x05      "COUNT_3"                                     [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x06      "COUNT_4"                                     [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x07      "COUNT_5"                                     [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x08      "COUNT_6"                                     [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x09      "COUNT_7"                                     [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x0a      "ADV_COUNT_0"                                 [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x0b      "ADV_COUNT_1"                                 [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x0c      "ADV_COUNT_2"                                 [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x0d      "ADV_COUNT_3"                                 [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x0e      "ADV_COUNT_4"                                 [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x0f      "ADV_COUNT_5"                                 [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x10      "ADV_COUNT_6"                                 [UNSIGNED32       R_R_R_]      0x00000000 / 0
+    0x11      "ADV_COUNT_7"                                 [UNSIGNED32       R_R_R_]      0x00000000 / 0
+0x7000      "OUTPUT_DATA"                                 [RECORD  maxsub(0x01 / 1)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x01 / 1
+    0x01      "OUTPUT_CMD"                                  [UNSIGNED16       RWRWRW]      0x0000 / 0
+0x7001      "HW_SETUP"                                    [RECORD  maxsub(0x12 / 18)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x11 / 17
+    0x01      "OUT_PRESCALE_0"                              [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x02      "OUT_PRESCALE_1"                              [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x03      "OUT_PRESCALE_2"                              [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x04      "OUT_PRESCALE_3"                              [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x05      "OUT_UPDATED"                                 [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x07      "IN_PRESCALE_0"                               [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x08      "IN_PRESCALE_1"                               [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x09      "IN_PRESCALE_2"                               [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x0a      "IN_PRESCALE_3"                               [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x0b      "IN_PRESCALE_4"                               [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x0c      "IN_PRESCALE_5"                               [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x0d      "IN_PRESCALE_6"                               [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x0e      "IN_PRESCALE_7"                               [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x0f      "IN_UPDATED"                                  [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x10      "IN_FILTER"                                   [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x11      "IN_FILTER_ENABLED"                           [UNSIGNED8        RWRWRW]      0x00 / 0
+0x7002      "HW_OUT_PULSE"                                [RECORD  maxsub(0x0c / 12)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x0b / 11
+    0x01      "DUTY_CYCLE_0"                                [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x02      "DUTY_CYCLE_1"                                [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x03      "DUTY_CYCLE_2"                                [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x04      "DUTY_CYCLE_3"                                [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x05      "OFFSET_0"                                    [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x06      "OFFSET_1"                                    [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x07      "COUNT_0"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x08      "COUNT_1"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x09      "COUNT_2"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x0a      "COUNT_3"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x0b      "UPDATED"                                     [UNSIGNED8        RWRWRW]      0x00 / 0
+0x7003      "HW_TRIGGER"                                  [RECORD  maxsub(0x12 / 18)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x12 / 18
+    0x01      "ENABLED"                                     [UNSIGNED16       RWRWRW]      0x0000 / 0
+    0x02      "COUNT_0"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x03      "COUNT_1"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x04      "COUNT_2"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x05      "COUNT_3"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x06      "COUNT_4"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x07      "COUNT_5"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x08      "COUNT_6"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x09      "COUNT_7"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x0a      "COUNT_8"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x0b      "COUNT_9"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x0c      "COUNT_10"                                    [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x0d      "COUNT_11"                                    [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x0e      "COUNT_12"                                    [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x0f      "COUNT_13"                                    [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x10      "COUNT_14"                                    [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x11      "COUNT_15"                                    [UNSIGNED32       RWRWRW]      0x00000000 / 0
+    0x12      "UPDATED"                                     [UNSIGNED32       RWRWRW]      0x00000000 / 0
+0x7004      "HW_IN_COUNT"                                 [RECORD  maxsub(0x01 / 1)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x01 / 1
+    0x01      "COMMAND"                                     [UNSIGNED16       RWRWRW]      0x0000 / 0
+0x7005      "HW_IN_COUNT_LATCH"                           [RECORD  maxsub(0x02 / 2)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x02 / 2
+    0x01      "COMMAND"                                     [UNSIGNED8        RWRWRW]      0x00 / 0
+    0x02      "UPDATED"                                     [UNSIGNED8        RWRWRW]      0x00 / 0
+0x7006      "LEDS"                                        [RECORD  maxsub(0x02 / 2)]
+    0x00      "SubIndex 000"                                [UNSIGNED8        R_R_R_]      0x01 / 1
+    0x01      "LEDS"                                        [UNSIGNED8        RWRWRW]      0x00 / 0
