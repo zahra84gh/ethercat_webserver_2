@@ -902,10 +902,11 @@ void dx3_send_input(char *response, void *generic_map)
     char input_status[100];
     dx3_input_map_t *input_map = (dx3_input_map_t *)generic_map;
 
-    sprintf(input_status, "%d %d %d",
+    sprintf(input_status, "%d %d %d %d",
             input_map->status,
             input_map->actual_position,
-            input_map->error);
+            input_map->error,
+            input_map->torque_actual_value);
 
     memcpy(response, input_status, sizeof(input_status));
 }
@@ -915,13 +916,15 @@ void dx3_send_output(char *response, void *generic_map)
     char output_status[100];
     dx3_output_map_t *output_map = (dx3_output_map_t *)generic_map;
 
-    sprintf(output_status, "%d %d %d %d %d %d",
+    sprintf(output_status, "%d %d %d %d %d %d %d %d",
             output_map->ctrl_word,
             output_map->operation_mode,
             output_map->target_position,
             output_map->profile_velocity,
             output_map->profile_acceleration,
-            output_map->profile_deceleration);
+            output_map->profile_deceleration,
+            output_map->home_offset,
+            output_map->target_velocity);
 
     memcpy(response, output_status, sizeof(output_status));
 }
@@ -1001,6 +1004,12 @@ void dx3_set_output(uint8_t index, void *value, char *type, void *generic_map)
         break;
     case 5:
         output_map->profile_deceleration = *u32;
+        break;
+    case 6:
+        output_map->home_offset = *i32;
+        break;
+    case 7:
+        output_map->target_velocity = *i32;
         break;
     default:
         break;
@@ -1827,7 +1836,55 @@ int initialize_ethercat(char *ifname)
     return 0;
 }
 
+/* int custom_homing(uint16_t slave)
+{
+    int32 homing_torque_limit = 100;
+
+    int32 torque_actual_value = 0;
+    int size_torque = sizeof(torque_actual_value);
+
+    int32 actual_position = 0;
+    int size_actual_position = sizeof(actual_position);
+
+    printf("Homig function is called. \n");
+    while (1)
+    {
+
+        ec_SDOread(slave, TORQUE_ACTUAL_INDEX, 0x00, FALSE, &size_torque, &torque_actual_value, EC_TIMEOUTRXM);
+
+        if (abs(torque_actual_value) >= abs(homing_torque_limit))
+        {
+            printf("Torque limit reached: %d, starting homing procedure...\n", torque_actual_value);
+            output_map->ctrl_word = 0x008F;
+
+            ec_SDOread(slave, POSITION_ACTUAL_INDEX, 0x00, FALSE, &size_actual_position, &actual_position, EC_TIMEOUTRXM);
+            printf("Custom homing completed.\n");
+        }
+        usleep(100000);
+    }
+    return actual_position;
+} */
+
+int own_counter = 0;
+uint8_t homing_on_found_offset = 0;
 static int ethercat_loop_counter = 0;
+
+float cycle_count = 0;
+int counter_counter = 0;
+int counter_set = 0;
+
+int16_t torque_actual_value;
+int size_torque = sizeof(torque_actual_value);
+int32 homing_torque_limit = 150;
+
+bool homing_done = false;
+
+static time_t homing_start_time = 0;
+static bool delay_done = false;
+int32 pose_offset;
+int32 target = 200000;
+int32 target_to_reach;
+
 
 void ethercat_loop(void)
 {
@@ -1935,18 +1992,14 @@ void ethercat_loop(void)
     int32_t loop_count = 0;
 #endif
 
-#ifdef DX3
     input_map = (dx3_input_map_t *)ec_slave[1].inputs;
     output_map = (dx3_output_map_t *)ec_slave[1].outputs;
-#endif
 
     int wkc_current = wkc;
     printf("Start ethercat loop\n");
     global_status_loop = 1;
     /* Ethercat cyclic loop */
-    float cycle_count = 0;
-    int counter_counter = 0;
-    bool counter_set = false;
+
     while (1)
     {
         ethercat_loop_counter++;
@@ -2099,67 +2152,139 @@ void ethercat_loop(void)
               output_map->ctrl_word = 0x007F;
           #endif */
 
-        if (ethercat_loop_counter % 200 == 100)
-        {
-            printf("Statusword: 0x%4.4x\n", input_map->status);
-            printf("Error: 0x%4.4x\n", input_map->error);
-        }
+        ec_SDOread(1, TORQUE_ACTUAL_INDEX, 0x00, FALSE, &size_torque, &torque_actual_value, EC_TIMEOUTRXM);
+        if (ethercat_loop_counter <= 3500 && ethercat_loop_counter % 30 == 0)
+            printf("actual torque is: %d\n", torque_actual_value);
 
         if (ethercat_loop_counter == 1000)
         {
             output_map->ctrl_word = 0x000F; // 15
-            output_map->operation_mode = 0x0001;
+            output_map->target_velocity = 0x0003;
+            output_map->profile_acceleration = 0x0003;
+            output_map->profile_deceleration = 0x0003;
         }
 
         if (ethercat_loop_counter == 1010)
         {
-            output_map->profile_velocity = 0x00C8;      // 200
-            output_map->profile_acceleration = 0x00C8; 
-            output_map->profile_deceleration = 0x00C8;
-            output_map->homing_method = 0x23;     //35
-        }
-
-        if (ethercat_loop_counter == 1020)
             output_map->ctrl_word = 0x80; //&128
-
-        if (ethercat_loop_counter == 1030)
-        {
-            output_map->ctrl_word = 0x0006;
-            output_map->operation_mode = 0x0001;
         }
 
-        if (ethercat_loop_counter == 1050)
+        if (ethercat_loop_counter == 1100)
+        {
+            output_map->ctrl_word = 0x0006; // 6
+        }
+
+        if (ethercat_loop_counter == 1200)
             output_map->ctrl_word = 0x000F; // 15
 
-        if (ethercat_loop_counter == 1090)
+        if (ethercat_loop_counter == 1250)
         {
-            output_map->ctrl_word = 0x000F;      // 15
-            output_map->operation_mode = 0x0006; // 6
+            output_map->ctrl_word = 0x000F;    // 15
+            output_map->operation_mode = 0x03; // 3    profile velocity
         }
 
-        if (ethercat_loop_counter >= 1100 && ethercat_loop_counter >= 1990)
-            output_map->ctrl_word = 0x001F; // 31
-
-        if (ethercat_loop_counter == 2000)
+        if (ethercat_loop_counter >= 1300 && !homing_done)
         {
-            output_map->ctrl_word = 0x000F; // 15
-            output_map->operation_mode = 0x0001;
-        }
-
-        if (ethercat_loop_counter == 2010)
-        {
-            output_map->ctrl_word = 0x000F; // 15
-            output_map->target_position = 0x0001;   // 200 000
-        }
-
-        if (ethercat_loop_counter == 2100)
             output_map->ctrl_word = 0x007F; // 127
 
-        if (ethercat_loop_counter == 4000)
-            output_map->ctrl_word = 0x0001;
+            ec_SDOread(1, TORQUE_ACTUAL_INDEX, 0x00, FALSE, &size_torque, &torque_actual_value, EC_TIMEOUTRXM);
 
-        if (ethercat_loop_counter % 300 == 0 && ethercat_loop_counter > 4000)
-            printf("target is reached.\n");
+            if (ethercat_loop_counter >= 1400 && !homing_done && abs(torque_actual_value) >= abs(homing_torque_limit))
+            {
+                printf("Torque limit reached: %d, setting homing...\n", torque_actual_value);
+
+                pose_offset = input_map->actual_position;
+                printf("Offset position: %d\n", pose_offset);
+
+                output_map->ctrl_word = 0x010F; // 271 stop motor
+
+                homing_done = true;
+                homing_start_time = time(NULL);
+                delay_done = false;
+
+                printf("Homing done.\n");
+            }
+        }
+
+        if (homing_done && homing_on_found_offset == 0)
+        {
+            output_map->operation_mode = 0x06; // homing mode
+
+            output_map->ctrl_word = 15;
+            homing_on_found_offset = 1;
+        }
+
+        if (homing_done && homing_on_found_offset == 1)
+        {
+            output_map->ctrl_word = 31;
+            homing_on_found_offset = 2;
+        }
+
+        if (homing_done && !delay_done)
+        {
+            time_t current_time = time(NULL);
+            if (difftime(current_time, homing_start_time) >= 5.0)
+            {
+                delay_done = true;
+                printf("5-second delay after homing completed. Running to the target...\n");
+                
+                printf("Homing done? %s\n", input_map->status & 0x8000 == 0x8000 ? "TRUE" : "FALSE"); // bit 15
+            }
+
+            if (ethercat_loop_counter >= 1500 && delay_done)
+            {
+                output_map->ctrl_word = 0x000F; // 15
+                output_map->profile_velocity = 0x0003;
+                output_map->profile_acceleration = 0x0003;
+                output_map->profile_deceleration = 0x0003;
+
+                output_map->operation_mode = 0x01; // 1
+
+                own_counter = ethercat_loop_counter + 10;
+            }
+        }
+
+        if (ethercat_loop_counter == own_counter)
+        {
+            target_to_reach = -target;
+            output_map->target_position = target_to_reach;
+
+            printf("Target to reach : %d\n", target_to_reach);
+        }
+
+        if (ethercat_loop_counter == own_counter + 10)
+        {
+            printf("running forward target! \n");
+            output_map->ctrl_word = 127; // 0x007F; // 127  relative position  , 63 absolute
+        }
+
+        if (homing_done && delay_done)
+        {
+            if (ethercat_loop_counter % 2 == 0)
+                printf("Pose after homing :%d\n", input_map->actual_position);
+            /* if (ethercat_loop_counter % 100 == 0)
+            {
+                printf("Target pose is: %d\n"
+                       "Actual pose is: %d\n",
+                       //   "STATUS WORD: %d"
+                       // "Target reached? %s\n",
+                       pose_offset - target,
+                       input_map->actual_position
+                       //   input_map->status,
+                       // (input_map->status & 0b1000000000) == 512 ? "TRUE" : "FALSE"     // bit 10
+                );
+            } */
+
+            if (input_map->actual_position <= -target)
+            {
+                output_map->ctrl_word = 0x0001;
+
+                if (ethercat_loop_counter % 100 == 0)
+                    printf("Target is reached! "
+                           "Actual position is : %d\n",
+                           input_map->actual_position);
+            }
+        }
 
 #ifdef CMMT
         if (ethercat_loop_counter % 200 == 100)

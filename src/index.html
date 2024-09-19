@@ -764,25 +764,5 @@
 
 </html>
 
-Change enter-docker.sh script so docker knows where to look for the sources
-nano enter_docker.sh
-add: ex: -v $HOME/[YOUR LOCATION TO PACKING MACHINE SCR]/packing-machine-src/:/workdir/packing-machine-src/
 
-Add the packages inside docker
-sh enter_docker.sh
-. oe-init-build-env
-devtool modify -n newtec-packing-machine-controller /workdir/packing-machine-src
-
-Reset the devtool
-devtool reset -a -n 
-
-
-Devshell
-bitbake multiconfig:qt5222:newtec-packing-machine-controller -c devshell
-(oe-workdir/newtec-packing-machine-controller-1.0 [TAB])
-(make)
-
-You can now run 'bitbake <target>'
-
-Common targets are:
 
