@@ -29,5 +29,5 @@ ethcercat_slave_collection_t *get_all_slaves();
 void init_ethercat_loop();
 int retreive_info();
 
-void custom_homing(uint16_t slave);
+void custom_homing(uint16_t  slave);
 void set_torque_limit(uint16_t slave);

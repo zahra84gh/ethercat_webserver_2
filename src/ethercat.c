@@ -22,6 +22,7 @@
 #include "include/eio116e.h"
 #include "include/pan355.h"
 #include "include/dx3.h"
+#include "include/step_motor_pan355.h"
 
 uint8_t global_sdo_read = 0;
 uint8_t global_pdo_read = 0;
@@ -1836,56 +1837,107 @@ int initialize_ethercat(char *ifname)
     return 0;
 }
 
-/* int custom_homing(uint16_t slave)
-{
-    int32 homing_torque_limit = 100;
-
-    int32 torque_actual_value = 0;
-    int size_torque = sizeof(torque_actual_value);
-
-    int32 actual_position = 0;
-    int size_actual_position = sizeof(actual_position);
-
-    printf("Homig function is called. \n");
-    while (1)
-    {
-
-        ec_SDOread(slave, TORQUE_ACTUAL_INDEX, 0x00, FALSE, &size_torque, &torque_actual_value, EC_TIMEOUTRXM);
-
-        if (abs(torque_actual_value) >= abs(homing_torque_limit))
-        {
-            printf("Torque limit reached: %d, starting homing procedure...\n", torque_actual_value);
-            output_map->ctrl_word = 0x008F;
-
-            ec_SDOread(slave, POSITION_ACTUAL_INDEX, 0x00, FALSE, &size_actual_position, &actual_position, EC_TIMEOUTRXM);
-            printf("Custom homing completed.\n");
-        }
-        usleep(100000);
-    }
-    return actual_position;
-} */
-
-int own_counter = 0;
-uint8_t homing_on_found_offset = 0;
-static int ethercat_loop_counter = 0;
-
 float cycle_count = 0;
 int counter_counter = 0;
 int counter_set = 0;
 
+#ifdef STEP MOTOR HOMING + DX3
+int own_counter_1 = 0;
+int own_counter_2 = 0;
+uint8_t homing_on_found_offset = 0;
+static int ethercat_loop_counter = 0;
+
 int16_t torque_actual_value;
 int size_torque = sizeof(torque_actual_value);
-int32 homing_torque_limit = 150;
+int32 homing_torque_limit = 300;
 
 bool homing_done = false;
 
 static time_t homing_start_time = 0;
 static bool delay_done = false;
 int32 pose_offset;
-int32 target = 200000;
-int32 target_to_reach;
+int32 target_1 = 400000;
+int32 target_2 = 200000;
+static bool target_1_reached = false;
+static bool target_2_reached = false;
 
+typedef enum
+{
+    STATE_HOMING_1,
+    STATE_HOMING_2,
+    STATE_DELAY,
+    STATE_CONFIGURE_TARGET_1,
+    STATE_CONFIGURE_TARGET_2,
+    STATE_PREPARE_TARGET_1,
+    STATE_MOVE_TO_TARGET_1,
+    STATE_REACHED_TARGET_1,
+    STATE_PREPARE_TARGET_2,
+    STATE_MOVE_TO_TARGET_2,
+    STATE_REACHED_TARGET_2,
+    STOP
+} MotorState;
 
+MotorState motor_state = STATE_HOMING_1;
+
+#endif
+
+// STEP MOTOR PAN355
+void set_timeout(uint16_t timeout)
+{
+    ec_SDOwrite(1, PDO_COM_TIMEOUT_CONFIGURATION, 0x01, FALSE, sizeof(timeout), &timeout, EC_TIMEOUTRXM);
+}
+
+void set_stp_0_action(uint8_t stp_0_action)
+{
+    ec_SDOwrite(1, PDO_COM_TIMEOUT_CONFIGURATION, 0x02, FALSE, sizeof(stp_0_action), &stp_0_action, EC_TIMEOUTRXM);
+}
+
+void set_stp_1_action(uint8_t stp_1_action)
+{
+    ec_SDOwrite(1, PDO_COM_TIMEOUT_CONFIGURATION, 0x03, FALSE, sizeof(stp_1_action), &stp_1_action, EC_TIMEOUTRXM);
+}
+
+void set_stp_pulse_div(uint16_t STP_CONFIGURATION, uint8_t pulse_div)
+{
+    ec_SDOwrite(1, STP_CONFIGURATION, 0x01, FALSE, sizeof(pulse_div), &pulse_div, EC_TIMEOUTRXM);
+}
+
+void set_stp_ramp_div(uint16_t STP_CONFIGURATION, uint8_t ramp_div)
+{
+    ec_SDOwrite(1, STP_CONFIGURATION, 0x02, FALSE, sizeof(ramp_div), &ramp_div, EC_TIMEOUTRXM);
+}
+
+void set_stp_i_hold(uint16_t STP_CONFIGURATION, uint8_t i_hold)
+{
+    ec_SDOwrite(1, STP_CONFIGURATION, 0x03, FALSE, sizeof(i_hold), &i_hold, EC_TIMEOUTRXM);
+}
+
+void set_stp_i_run(uint16_t STP_CONFIGURATION, uint8_t i_run)
+{
+    ec_SDOwrite(1, STP_CONFIGURATION, 0x04, FALSE, sizeof(i_run), &i_run, EC_TIMEOUTRXM);
+}
+
+void set_stp_max_position_error(uint16_t STP_CONFIGURATION, uint32_t max_pos_error)
+{
+    ec_SDOwrite(1, STP_CONFIGURATION, 0x05, FALSE, sizeof(max_pos_error), &max_pos_error, EC_TIMEOUTRXM);
+}
+
+void set_stp_run_current_timeout(uint16_t STP_CONFIGURATION, uint32_t current_timeout)
+{
+    ec_SDOwrite(1, STP_CONFIGURATION, 0x06, FALSE, sizeof(current_timeout), &current_timeout, EC_TIMEOUTRXM);
+}
+
+void set_stp_microstep_setting(uint16_t STP_CONFIGURATION, uint8_t microstep_setting)
+{
+    ec_SDOwrite(1, STP_CONFIGURATION, 0x07, FALSE, sizeof(microstep_setting), &microstep_setting, EC_TIMEOUTRXM);
+}
+
+void set_stp_invert_motor_direction(uint16_t STP_CONFIGURATION, uint8_t invert_motor_dir)
+{
+    ec_SDOwrite(1, STP_CONFIGURATION, 0x08, FALSE, sizeof(invert_motor_dir), &invert_motor_dir, EC_TIMEOUTRXM);
+}
+
+static int ethercat_loop_counter = 0;
 void ethercat_loop(void)
 {
     int i, chk;
@@ -1926,21 +1978,13 @@ void ethercat_loop(void)
 #endif
 
     printf("ec: ethercat_loop: start\n");
-
-    /* Ethercat house keeping to get it going in operational state */
     expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;
     printf("ec: ethercat_loop: Calculated workcounter %d\n", expectedWKC);
     ec_slave[0].state = EC_STATE_OPERATIONAL;
-    /* send one valid process data to make outputs in slaves happy */
     ec_send_processdata();
     ec_receive_processdata(EC_TIMEOUTRET);
-    /* request OP state for all slaves */
     ec_writestate(0);
-
-    /* Initialize number of checks before giving up */
     chk = 40;
-
-    /* wait for all slaves to reach operational state */
     do
     {
         ec_send_processdata();
@@ -1992,16 +2036,54 @@ void ethercat_loop(void)
     int32_t loop_count = 0;
 #endif
 
+#ifdef STEP MOTOR HOMING + DX3
+
     input_map = (dx3_input_map_t *)ec_slave[1].inputs;
     output_map = (dx3_output_map_t *)ec_slave[1].outputs;
+#endif
+
+    // STEP MOTOR PAN355
+    ec_slave_stp_output *stp_out_ptr = (ec_slave_stp_output *)ec_slave[1].outputs;
+    ec_slave_stp_input *stp_in_ptr = (ec_slave_stp_input *)ec_slave[1].inputs;
+
+    typedef enum
+    {
+        MOTOR_STATE_IDLE,
+        MOTOR_STATE_MOVE_FORWARD,
+        MOTOR_STATE_MOVE_BACKWARD,
+        MOTOR_STATE_IDLE_PERIOD
+    } MotorState;
+
+    MotorState motor_state = MOTOR_STATE_IDLE;
+
+    int initial_position;
+    int target_position;
+    int forward_target = 20000;
+    int backward_target = -20000;
+    bool moving_to_position = false;
+    int idle_counter = 0;
+
+    set_timeout(1000);
+    set_stp_0_action(1);
+    set_stp_1_action(1);
+    set_stp_pulse_div(STP0_CONFIGURATION, pulse_div_value);
+    set_stp_ramp_div(STP0_CONFIGURATION, ramp_div_value);
+    set_stp_i_hold(STP0_CONFIGURATION, i_hold_value);
+    set_stp_i_run(STP0_CONFIGURATION, i_run_value);
+    set_stp_max_position_error(STP0_CONFIGURATION, max_pos_error_value);
+    set_stp_run_current_timeout(STP0_CONFIGURATION, current_timeout_value);
+    set_stp_microstep_setting(STP0_CONFIGURATION, microstep_setting_value);
+    set_stp_invert_motor_direction(STP0_CONFIGURATION, invert_motor_dir_value);
 
     int wkc_current = wkc;
     printf("Start ethercat loop\n");
     global_status_loop = 1;
-    /* Ethercat cyclic loop */
 
+
+    /* Ethercat cyclic loop */
     while (1)
     {
+
         ethercat_loop_counter++;
 
         if (ethercat_loop_counter % 200 == 100)
@@ -2056,102 +2138,108 @@ void ethercat_loop(void)
             cycle_count = 0;
         }
 
-        /*  #ifdef DX3
-          if(ethercat_loop_counter % 200 == 100){
-              printf("Statusword: 0x%4.4x\n", input_map->status);
-              printf("Error: 0x%4.4x\n", input_map->error);
-          }
+        /*
+
+        #ifdef DX3 Jonas
+
+                  if(ethercat_loop_counter % 200 == 100){
+                      printf("Statusword: 0x%4.4x\n", input_map->status);
+                      printf("Error: 0x%4.4x\n", input_map->error);
+                  }
+
+                  uint32_t acc;
+                  int size_acc = sizeof(acc);
+                  ec_SDOread(1, 0x6083, 0x00, FALSE, &size_acc, &acc, EC_TIMEOUTSAFE);
+                  if(ethercat_loop_counter % 500 == 0) printf("before acc sdo is : %d\n", acc);
+                  if(ethercat_loop_counter % 500 == 0) printf("before acc ptr is : %d\n", input_map->status);
+
+                  uint32_t dec;
+                  int size_dec = sizeof(dec);
+                  ec_SDOread(1, 0x6084, 0x00, FALSE, &size_dec, &dec, EC_TIMEOUTSAFE);
+                  if(ethercat_loop_counter % 500 == 0) printf("before dec sdo is : %d\n", dec);
+                  if(ethercat_loop_counter % 500 == 0) printf("before dec ptr is : %d\n", output_map->profile_deceleration);
 
 
-          uint32_t acc;
-          int size_acc = sizeof(acc);
-          ec_SDOread(1, 0x6083, 0x00, FALSE, &size_acc, &acc, EC_TIMEOUTSAFE);
-          if(ethercat_loop_counter % 500 == 0) printf("before acc sdo is : %d\n", acc);
-          if(ethercat_loop_counter % 500 == 0) printf("before acc ptr is : %d\n", input_map->status);
+                  output_map->profile_acceleration = 1000;
+                  output_map->profile_deceleration = 500;
 
-          uint32_t dec;
-          int size_dec = sizeof(dec);
-          ec_SDOread(1, 0x6084, 0x00, FALSE, &size_dec, &dec, EC_TIMEOUTSAFE);
-          if(ethercat_loop_counter % 500 == 0) printf("before dec sdo is : %d\n", dec);
-          if(ethercat_loop_counter % 500 == 0) printf("before dec ptr is : %d\n", output_map->profile_deceleration);
+                  uint32_t acc_2;
+                  int size_acc_2 = sizeof(acc);
+                  ec_SDOread(1, 0x6083, 0x00, FALSE, &size_acc_2, &acc, EC_TIMEOUTSAFE);
+                  if(ethercat_loop_counter % 500 == 0) printf("after acc sdo is : %d\n", acc);
+                  if(ethercat_loop_counter % 500 == 0) printf("after acc ptr is : %d\n", output_map->profile_acceleration);
 
-
-          output_map->profile_acceleration = 1000;
-          output_map->profile_deceleration = 500;
-
-          uint32_t acc_2;
-          int size_acc_2 = sizeof(acc);
-          ec_SDOread(1, 0x6083, 0x00, FALSE, &size_acc_2, &acc, EC_TIMEOUTSAFE);
-          if(ethercat_loop_counter % 500 == 0) printf("after acc sdo is : %d\n", acc);
-          if(ethercat_loop_counter % 500 == 0) printf("after acc ptr is : %d\n", output_map->profile_acceleration);
-
-          uint32_t dec_2;
-          int size_dec_2 = sizeof(dec);
-          ec_SDOread(1, 0x6084, 0x00, FALSE, &size_dec_2, &dec, EC_TIMEOUTSAFE);
-          if(ethercat_loop_counter % 500 == 0) printf("after dec sdo is : %d\n", dec);
-          if(ethercat_loop_counter % 500 == 0) printf("after dec ptr is : %d\n", output_map->profile_deceleration);
+                  uint32_t dec_2;
+                  int size_dec_2 = sizeof(dec);
+                  ec_SDOread(1, 0x6084, 0x00, FALSE, &size_dec_2, &dec, EC_TIMEOUTSAFE);
+                  if(ethercat_loop_counter % 500 == 0) printf("after dec sdo is : %d\n", dec);
+                  if(ethercat_loop_counter % 500 == 0) printf("after dec ptr is : %d\n", output_map->profile_deceleration);
 
 
-           if(ethercat_loop_counter == 1000)
-              output_map->ctrl_word = 0x0006;
+                   if(ethercat_loop_counter == 1000)
+                      output_map->ctrl_word = 0x0006;
 
-          if(ethercat_loop_counter == 1010)
-              output_map->ctrl_word = 0x0007;
+                  if(ethercat_loop_counter == 1010)
+                      output_map->ctrl_word = 0x0007;
 
-          if(ethercat_loop_counter == 1020)
-              output_map->ctrl_word = 0x000F;
+                  if(ethercat_loop_counter == 1020)
+                      output_map->ctrl_word = 0x000F;
 
-          if(ethercat_loop_counter == 1030)
-              output_map->operation_mode = 0x0006;
+                  if(ethercat_loop_counter == 1030)
+                      output_map->operation_mode = 0x0006;
 
-          if(ethercat_loop_counter == 1050)
-              output_map->ctrl_word = 31;
+                  if(ethercat_loop_counter == 1050)
+                      output_map->ctrl_word = 31;
 
-          if(ethercat_loop_counter == 1090)
-              output_map->ctrl_word = 0x000F;
+                  if(ethercat_loop_counter == 1090)
+                      output_map->ctrl_word = 0x000F;
 
-          if(ethercat_loop_counter == 1100)
-              output_map->operation_mode = 0x0001;
+                  if(ethercat_loop_counter == 1100)
+                      output_map->operation_mode = 0x0001;
 
-          if(ethercat_loop_counter == 2000)
-              output_map->target_position = 25000;
+                  if(ethercat_loop_counter == 2000)
+                      output_map->target_position = 25000;
 
-          if(ethercat_loop_counter == 2010)
-              output_map->ctrl_word = 0x007F;
+                  if(ethercat_loop_counter == 2010)
+                      output_map->ctrl_word = 0x007F;
 
-          if(ethercat_loop_counter == 2100){
-              output_map->ctrl_word = 0x000F;
-              output_map->target_position = -15000;
-          }
+                  if(ethercat_loop_counter == 2100){
+                      output_map->ctrl_word = 0x000F;
+                      output_map->target_position = -15000;
+                  }
 
-          if(ethercat_loop_counter == 2110)
-              output_map->ctrl_word = 0x007F;
+                  if(ethercat_loop_counter == 2110)
+                      output_map->ctrl_word = 0x007F;
 
-          if(ethercat_loop_counter == 2200){
-              output_map->ctrl_word = 0x000F;
-              output_map->target_position = 35000;
-          }
+                  if(ethercat_loop_counter == 2200){
+                      output_map->ctrl_word = 0x000F;
+                      output_map->target_position = 35000;
+                  }
 
-          if(ethercat_loop_counter == 2210)
-              output_map->ctrl_word = 0x007F;
+                  if(ethercat_loop_counter == 2210)
+                      output_map->ctrl_word = 0x007F;
 
-          if(ethercat_loop_counter == 2300){
-              output_map->ctrl_word = 0x000F;
-              output_map->target_position = -15000;
-          }
+                  if(ethercat_loop_counter == 2300){
+                      output_map->ctrl_word = 0x000F;
+                      output_map->target_position = -15000;
+                  }
 
-          if(ethercat_loop_counter == 2310)
-              output_map->ctrl_word = 0x007F;
+                  if(ethercat_loop_counter == 2310)
+                      output_map->ctrl_word = 0x007F;
 
-          if(ethercat_loop_counter == 2400){
-              output_map->ctrl_word = 0x000F;
-              output_map->target_position = 45000;
-          }
+                  if(ethercat_loop_counter == 2400){
+                      output_map->ctrl_word = 0x000F;
+                      output_map->target_position = 45000;
+                  }
 
-          if(ethercat_loop_counter == 2410)
-              output_map->ctrl_word = 0x007F;
-          #endif */
+                  if(ethercat_loop_counter == 2410)
+                      output_map->ctrl_word = 0x007F;
 
+        #endif
+
+        */
+
+#ifdef STEP MOTOR HOMING + DX3
         ec_SDOread(1, TORQUE_ACTUAL_INDEX, 0x00, FALSE, &size_torque, &torque_actual_value, EC_TIMEOUTRXM);
         if (ethercat_loop_counter <= 3500 && ethercat_loop_counter % 30 == 0)
             printf("actual torque is: %d\n", torque_actual_value);
@@ -2201,89 +2289,219 @@ void ethercat_loop(void)
                 homing_done = true;
                 homing_start_time = time(NULL);
                 delay_done = false;
-
-                printf("Homing done.\n");
             }
         }
 
-        if (homing_done && homing_on_found_offset == 0)
+        switch (motor_state)
         {
-            output_map->operation_mode = 0x06; // homing mode
-
-            output_map->ctrl_word = 15;
-            homing_on_found_offset = 1;
-        }
-
-        if (homing_done && homing_on_found_offset == 1)
-        {
-            output_map->ctrl_word = 31;
-            homing_on_found_offset = 2;
-        }
-
-        if (homing_done && !delay_done)
-        {
-            time_t current_time = time(NULL);
-            if (difftime(current_time, homing_start_time) >= 5.0)
+        case STATE_HOMING_1:
+            if (homing_done && homing_on_found_offset == 0)
             {
-                delay_done = true;
-                printf("5-second delay after homing completed. Running to the target...\n");
-                
-                printf("Homing done? %s\n", input_map->status & 0x8000 == 0x8000 ? "TRUE" : "FALSE"); // bit 15
+                output_map->operation_mode = 0x06; // Homing mode
+                output_map->ctrl_word = 15;
+                homing_on_found_offset = 1;
+                printf("Homing step 1 completed.\n");
+                motor_state = STATE_HOMING_2;
             }
+            break;
 
+        case STATE_HOMING_2:
+
+            if (homing_done && homing_on_found_offset == 1)
+            {
+                output_map->ctrl_word = 31;
+                homing_on_found_offset = 2;
+                printf("Homing done.\n");
+                homing_start_time = time(NULL);
+                motor_state = STATE_DELAY;
+            }
+            break;
+
+        case STATE_DELAY:
+
+            if (homing_done && !delay_done)
+            {
+                time_t current_time = time(NULL);
+                if (difftime(current_time, homing_start_time) >= 2.0)
+                {
+                    delay_done = true;
+                    printf("5-second delay completed. Preparing target_1 configuration.\n");
+                    own_counter_1 = ethercat_loop_counter + 10;
+                    motor_state = STATE_CONFIGURE_TARGET_1;
+                }
+            }
+            break;
+
+        case STATE_CONFIGURE_TARGET_1:
             if (ethercat_loop_counter >= 1500 && delay_done)
             {
                 output_map->ctrl_word = 0x000F; // 15
-                output_map->profile_velocity = 0x0003;
-                output_map->profile_acceleration = 0x0003;
-                output_map->profile_deceleration = 0x0003;
+                output_map->profile_velocity = 0x0005;
+                output_map->profile_acceleration = 0x0001;
+                output_map->profile_deceleration = 0x0001;
 
                 output_map->operation_mode = 0x01; // 1
+                printf("Target_1 is configured. \n");
 
-                own_counter = ethercat_loop_counter + 10;
+                own_counter_1 = ethercat_loop_counter + 10;
+                motor_state = STATE_PREPARE_TARGET_1;
+            }
+            break;
+
+        case STATE_PREPARE_TARGET_1:
+            if (ethercat_loop_counter == own_counter_1)
+            {
+
+                output_map->target_position = -target_1;
+                printf("Target 1 set to: %d\n", output_map->target_position);
+                motor_state = STATE_MOVE_TO_TARGET_1;
+            }
+            break;
+
+        case STATE_MOVE_TO_TARGET_1:
+        {
+            output_map->ctrl_word = 63; //  absolute position
+            motor_state = STATE_REACHED_TARGET_1;
+        }
+        break;
+
+        case STATE_REACHED_TARGET_1:
+            if (!target_1_reached)
+            {
+                if (ethercat_loop_counter % 4 == 0)
+                    printf("Pose after homing :%d\n", input_map->actual_position);
+
+                if (input_map->actual_position <= -target_1 && input_map->actual_position >= -target_1 - 3000)
+                {
+                    printf("Target 1 reached. Actual position: %d\n", input_map->actual_position);
+                    target_1_reached = true;
+                    own_counter_2 = ethercat_loop_counter + 1;
+                    motor_state = STATE_CONFIGURE_TARGET_2;
+                }
+                else
+                {
+                    motor_state = STATE_MOVE_TO_TARGET_1;
+                }
+            }
+            break;
+
+        case STATE_CONFIGURE_TARGET_2:
+        {
+            if (target_1_reached && ethercat_loop_counter == own_counter_2)
+            {
+                output_map->ctrl_word = 0x000F; // 15
+                output_map->profile_velocity = 0x0005;
+                output_map->profile_acceleration = 0x0001;
+                output_map->profile_deceleration = 0x0001;
+
+                output_map->operation_mode = 0x01; // 1
+                printf("Target_2 is configured. \n");
+                motor_state = STATE_PREPARE_TARGET_2;
             }
         }
+        break;
 
-        if (ethercat_loop_counter == own_counter)
+        case STATE_PREPARE_TARGET_2:
         {
-            target_to_reach = -target;
-            output_map->target_position = target_to_reach;
-
-            printf("Target to reach : %d\n", target_to_reach);
-        }
-
-        if (ethercat_loop_counter == own_counter + 10)
-        {
-            printf("running forward target! \n");
-            output_map->ctrl_word = 127; // 0x007F; // 127  relative position  , 63 absolute
-        }
-
-        if (homing_done && delay_done)
-        {
-            if (ethercat_loop_counter % 2 == 0)
-                printf("Pose after homing :%d\n", input_map->actual_position);
-            /* if (ethercat_loop_counter % 100 == 0)
+            if (target_1_reached && ethercat_loop_counter == own_counter_2 + 10)
             {
-                printf("Target pose is: %d\n"
-                       "Actual pose is: %d\n",
-                       //   "STATUS WORD: %d"
-                       // "Target reached? %s\n",
-                       pose_offset - target,
-                       input_map->actual_position
-                       //   input_map->status,
-                       // (input_map->status & 0b1000000000) == 512 ? "TRUE" : "FALSE"     // bit 10
-                );
-            } */
-
-            if (input_map->actual_position <= -target)
-            {
-                output_map->ctrl_word = 0x0001;
-
-                if (ethercat_loop_counter % 100 == 0)
-                    printf("Target is reached! "
-                           "Actual position is : %d\n",
-                           input_map->actual_position);
+                output_map->target_position = target_2;
+                printf("Target 2 set to: %d\n", output_map->target_position);
+                motor_state = STATE_MOVE_TO_TARGET_2;
+                target_1_reached = false;
             }
+        }
+        break;
+
+        case STATE_MOVE_TO_TARGET_2:
+        {
+            output_map->ctrl_word = 127; // relativ position
+            target_2_reached = false;
+            motor_state = STATE_REACHED_TARGET_2;
+        }
+        break;
+
+        case STATE_REACHED_TARGET_2:
+            if (!target_2_reached)
+            {
+                if (ethercat_loop_counter % 3 == 0)
+                    printf("Pose after target_1 :%d\n", input_map->actual_position);
+
+                if (input_map->actual_position >= -target_1 + target_2 && input_map->actual_position <= -target_1 + target_2 + 3000)
+                {
+                    printf("Target 2 reached. Actual position: %d\n", input_map->actual_position);
+                    target_2_reached = true;
+                    motor_state = STATE_CONFIGURE_TARGET_1;
+                }
+                else
+                {
+                    motor_state = STATE_MOVE_TO_TARGET_2;
+                }
+            }
+            break;
+
+        default:
+            printf("Unknown state!\n");
+            break;
+        }
+#endif
+
+// STEP MOTOR PAN355
+        if (ethercat_loop_counter == 10)
+        {
+            stp_out_ptr->stp_target_acceleration_0 = 1000;
+            stp_out_ptr->stp_target_velocity_0 = 100;
+        }
+
+        switch (motor_state)
+        {
+        case MOTOR_STATE_IDLE:
+            if (ethercat_loop_counter > 200 && !moving_to_position)
+            {
+                initial_position = stp_in_ptr->stp_actual_position_0;
+                printf("Initial position for forward: %d\n", initial_position);
+                target_position = initial_position + forward_target;
+                stp_out_ptr->stp_target_position_0 = target_position;
+                stp_out_ptr->stp_requested_opmode_0 = PAN355_OPMODE_POSITION;
+                moving_to_position = true;
+                motor_state = MOTOR_STATE_MOVE_FORWARD;
+            }
+            break;
+
+        case MOTOR_STATE_MOVE_FORWARD:
+            if (stp_in_ptr->stp_actual_position_0 >= target_position)
+            {
+                printf("Reached forward target position:  %d\n", stp_in_ptr->stp_actual_position_0);
+                stp_out_ptr->stp_requested_opmode_0 = PAN355_OPMODE_IDLE;
+                moving_to_position = false;
+               // idle_counter = ethercat_loop_counter + 300;
+                motor_state = MOTOR_STATE_IDLE_PERIOD;
+            }
+            break;
+
+        case MOTOR_STATE_IDLE_PERIOD:
+            if (ethercat_loop_counter >= idle_counter)
+            {initial_position = stp_in_ptr->stp_actual_position_0;
+                printf("Initial position for backward: %d\n", initial_position);
+                target_position = initial_position + backward_target;
+                stp_out_ptr->stp_target_position_0 = target_position;
+                stp_out_ptr->stp_requested_opmode_0 = PAN355_OPMODE_POSITION;
+                printf("Switching to backward movement.\n");
+                motor_state = MOTOR_STATE_MOVE_BACKWARD;
+            }
+            break;
+
+        case MOTOR_STATE_MOVE_BACKWARD:
+            if (stp_in_ptr->stp_actual_position_0 <= target_position)
+            {
+                printf("Reached backward target position:  %d\n", stp_in_ptr->stp_actual_position_0);
+                stp_out_ptr->stp_requested_opmode_0 = PAN355_OPMODE_IDLE;
+                printf("Motor is now in idle mode.\n");
+                moving_to_position = false;
+              //  idle_counter = ethercat_loop_counter + 300;
+                motor_state = MOTOR_STATE_IDLE;
+            }
+            break;
         }
 
 #ifdef CMMT
